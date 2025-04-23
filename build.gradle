@@ -1,0 +1,50 @@
+plugins {
+    id 'application'
+    id 'java'
+}
+
+group = 'com.dongkyeom'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+application {
+    mainClass = 'com.dongkyeom.spark.streamer.SparkGpsProcessor'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    enabled = false
+}
+
+run {
+    jvmArgs += [
+            '--add-exports', 'java.base/sun.nio.ch=ALL-UNNAMED'
+    ]
+}
+
+
+dependencies {
+    implementation("org.apache.spark:spark-sql_2.12:3.4.1")
+    implementation("org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1")
+    implementation("org.apache.hbase:hbase-client:2.6.2") {
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+    }
+    implementation("org.apache.hbase:hbase-common:2.6.2") {
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+    }
+    implementation("org.apache.hadoop:hadoop-common:3.3.6")
+}
