@@ -56,11 +56,20 @@ public class SparkGpsProcessor {
                 .withWatermark("timestamp", "10 minutes");
 
         // trip_id별로 카운트하여 2개 이상인 경우만 필터링
-        Dataset<Row> filtered = gpsDataWithWatermark
-                .groupBy("trip_id", "trip_id_key", "agent_id", "latitude", "longitude", "timestamp")
-                .count()
-                .filter("count >= 2")
-                .drop("count");
+//        Dataset<Row> countPerTripId = gpsDataWithWatermark
+//                .groupBy(
+//                        col("trip_id"),
+//                        window(col("timestamp"), "10 minutes")
+//                )
+//                .count()
+//                .filter("count >= 2")
+//                .select("trip_id");
+
+        // count 2 이상인 trip_id만 원본과 Join
+//        Dataset<Row> filtered = gpsDataWithWatermark
+//                .dropDuplicates("trip_id", "timestamp")
+//                .join(countPerTripId, "trip_id");
+        Dataset<Row> filtered = gpsDataWithWatermark;
 
         // HBase에 저장
         StreamingQuery query = filtered.writeStream()

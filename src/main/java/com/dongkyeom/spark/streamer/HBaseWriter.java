@@ -10,7 +10,7 @@ public class HBaseWriter {
 
     public HBaseWriter() throws Exception {
         org.apache.hadoop.conf.Configuration config = org.apache.hadoop.hbase.HBaseConfiguration.create();
-        config.set("hbase.zookeeper.quorum", "localhost");
+        config.set("hbase.zookeeper.quorum", "hbase");
         config.set("hbase.zookeeper.property.clientPort", "2181");
         this.connection = ConnectionFactory.createConnection(config);
     }
