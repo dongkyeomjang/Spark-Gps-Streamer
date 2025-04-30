@@ -28,7 +28,7 @@ public class SparkGpsProcessor {
         // Kafka 스트리밍 데이터 읽기
         Dataset<Row> kafkaStream = spark.readStream()
                 .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092,localhost:9093,localhost:9094")
+                .option("kafka.bootstrap.servers", "kafka-1:29092,kafka-2:29093,kafka-3:29094")
                 .option("subscribe", "raw-gps")
                 .option("startingOffsets", "earliest")
                 .load();
@@ -55,21 +55,20 @@ public class SparkGpsProcessor {
         Dataset<Row> gpsDataWithWatermark = parsed
                 .withWatermark("timestamp", "10 minutes");
 
-        // trip_id별로 카운트하여 2개 이상인 경우만 필터링
-//        Dataset<Row> countPerTripId = gpsDataWithWatermark
-//                .groupBy(
-//                        col("trip_id"),
-//                        window(col("timestamp"), "10 minutes")
-//                )
-//                .count()
-//                .filter("count >= 2")
-//                .select("trip_id");
+        //trip_id별로 카운트하여 2개 이상인 경우만 필터링
+        Dataset<Row> countPerTripId = gpsDataWithWatermark
+                .groupBy(
+                        col("trip_id"),
+                        window(col("timestamp"), "10 minutes")
+                )
+                .count()
+                .filter("count >= 2")
+                .select("trip_id");
 
-        // count 2 이상인 trip_id만 원본과 Join
-//        Dataset<Row> filtered = gpsDataWithWatermark
-//                .dropDuplicates("trip_id", "timestamp")
-//                .join(countPerTripId, "trip_id");
-        Dataset<Row> filtered = gpsDataWithWatermark;
+        //count 2 이상인 trip_id만 원본과 Join
+        Dataset<Row> filtered = gpsDataWithWatermark
+                .dropDuplicates("trip_id", "timestamp")
+                .join(countPerTripId, "trip_id");
 
         // HBase에 저장
         StreamingQuery query = filtered.writeStream()

@@ -58,4 +58,6 @@ dependencies {
 
 tasks.named('shadowJar') {
     zip64 true
+    mergeServiceFiles()
+    archiveClassifier.set('all')
 }
