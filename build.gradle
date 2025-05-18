@@ -45,6 +45,7 @@ run {
 dependencies {
     implementation("org.apache.spark:spark-sql_2.12:3.4.1")
     implementation("org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.1")
+    implementation("org.apache.kafka:kafka-clients")
     runtimeOnly("org.apache.spark:spark-token-provider-kafka-0-10_2.12:3.4.1")
     implementation("org.apache.hbase:hbase-client:2.6.2") {
         exclude group: 'org.slf4j', module: 'slf4j-reload4j'
