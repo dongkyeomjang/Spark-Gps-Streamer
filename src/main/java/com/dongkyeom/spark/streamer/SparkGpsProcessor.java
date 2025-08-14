@@ -42,8 +42,8 @@ public class SparkGpsProcessor {
                 .format("kafka")
                 .option("kafka.bootstrap.servers", "kafka-1:29092,kafka-2:29093,kafka-3:29094")
                 .option("subscribe", "raw-gps")
-                .option("startingOffsets", "latest")          // ← 이 설정이 중요
-                .option("failOnDataLoss", "false")            // ← 토픽이 없거나 중간에 사라져도 중단 X
+                .option("startingOffsets", "latest")
+                .option("failOnDataLoss", "false")
                 .load();
 
         // Kafka 메시지 파싱
@@ -90,14 +90,12 @@ public class SparkGpsProcessor {
         StreamingQuery query = filtered.writeStream()
                 .foreach(new ForeachWriter<Row>() {
 
-                    private HBaseWriter writer;
                     private KafkaTriggerProducer producer;
                     private final Map<String, List<Row>> buffer = new HashMap<>();
 
                     @Override
                     public boolean open(long partitionId, long version) {
                         try {
-                            writer = new HBaseWriter();
                             producer = new KafkaTriggerProducer();
                             return true;
                         } catch (Exception e) {
@@ -110,14 +108,6 @@ public class SparkGpsProcessor {
                     public void process(Row row) {
                         try {
                             String tripId = row.getAs("trip_id").toString();
-
-                            // HBase 저장
-                            try {
-                                writer.writeToHBase(tripId, row.json());
-                            } catch (Exception e) {
-                                System.err.println("[HBase] ERROR writing to HBase: " + e.getMessage());
-                                e.printStackTrace();
-                            }
 
                             // 버퍼에 저장
                             buffer.computeIfAbsent(tripId, k -> new ArrayList<>()).add(row);
@@ -164,7 +154,6 @@ public class SparkGpsProcessor {
                     @Override
                     public void close(Throwable errorOrNull) {
                         try {
-                            if (writer != null) writer.close();
                             if (producer != null) producer.close();
                         } catch (Exception e) {
                             e.printStackTrace();
